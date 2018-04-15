@@ -1,0 +1,14 @@
+version: '2.3'
+services:
+    prediction:
+        build:
+            args:
+                - ELASTIC_PASSWORD=$ELASTIC_PASSWORD
+                - PYTHON_MODULE=ml
+            context: app
+        networks:
+            - backend
+        depends_on:
+            - db
+        command: python src/BitcoinPredictionStream.py
+        restart: on-failure

@@ -1,0 +1,12 @@
+unalias docker-compose
+alias docker-compose=""" \
+docker-compose --project-directory . \
+    -f docker-compose/elastic_kibana.yml \
+    -f docker-compose/transaction.yml \
+    -f docker-compose/kafka.yml \
+    -f docker-compose/price.yml \
+    -f docker-compose/miner.yml \
+    -f docker-compose/ml.yml \
+"""
+alias dc='docker-compose'
+export ELASTIC_PASSWORD=$(cat pass.txt)

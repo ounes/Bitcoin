@@ -1,0 +1,20 @@
+FROM python:3
+
+RUN echo 'deb http://deb.debian.org/debian jessie-backports main' \
+      > /etc/apt/sources.list.d/jessie-backports.list
+RUN apt-get update
+RUN apt-get install --target-release jessie-backports openjdk-8-jre-headless ca-certificates-java --assume-yes
+
+COPY ./requirements.txt /tmp/.
+RUN pip install --no-cache-dir -r /tmp/requirements.txt
+RUN rm /tmp/requirements.txt
+
+ARG PYTHON_MODULE=$PYTHON_MODULE
+RUN mkdir -p /app/src
+RUN echo "Copying module sources \"${PYTHON_MODULE}/src\" to container..."
+COPY $PYTHON_MODULE/src /app/src
+WORKDIR /app
+
+ARG ELASTIC_PASSWORD=$ELASTIC_PASSWORD
+RUN echo "password=\"$ELASTIC_PASSWORD\"" > src/elastic_config.py
+

@@ -1,0 +1,58 @@
+version: '2.3'
+services:
+    transaction_historical_producer:
+        build:
+            args:
+                - PYTHON_MODULE=transaction
+            context: app
+        command: python src/BitcoinTxIndex_historicalProducer.py
+        networks:
+            - kafka_net
+        depends_on:
+            - kafka
+            - transaction_historical_consumer
+        restart: on-failure
+    transaction_historical_consumer:
+        environment:
+            - KAFKA_MAVEN=org.apache.spark:spark-streaming-kafka-0-8-assembly_2.11:2.3.0
+        build:
+            args:
+                - PYTHON_MODULE=transaction
+                - ELASTIC_PASSWORD=$ELASTIC_PASSWORD
+            context: app
+        command: ['spark-submit', '--packages',  'org.apache.spark:spark-streaming-kafka-0-8-assembly_2.11:2.3.0', 'src/BitcoinTxIndex_historicalConsumer.py']
+        networks:
+            - kafka_net
+            - backend
+        depends_on:
+            - kafka
+            - db
+        restart: on-failure
+    transaction_streaming_producer:
+        build:
+            args:
+                - PYTHON_MODULE=transaction
+            context: app
+        command: python src/BitcoinTxIndex_streamingProducer.py
+        networks:
+            - kafka_net
+        depends_on:
+            - kafka
+            - transaction_streaming_consumer
+        restart: on-failure
+    transaction_streaming_consumer:
+        build:
+            args:
+                - PYTHON_MODULE=transaction
+                - ELASTIC_PASSWORD=$ELASTIC_PASSWORD
+            context: app
+        command: ['spark-submit', '--packages',  'org.apache.spark:spark-streaming-kafka-0-8-assembly_2.11:2.3.0', 'src/BitcoinTxIndex_streamingConsumer.py']
+        networks:
+            - kafka_net
+            - backend
+        depends_on:
+            - kafka
+            - db
+        restart: on-failure
+
+

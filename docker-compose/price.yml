@@ -1,0 +1,41 @@
+version: '2.3'
+services:
+    price_historical:
+        build:
+            args:
+                - ELASTIC_PASSWORD=$ELASTIC_PASSWORD
+                - PYTHON_MODULE=price
+            context: app
+        command: python3 src/BitcoinPriceIndex_historical.py
+        networks:
+            - backend
+    price_streaming_consumer:
+        build:
+            args:
+                - ELASTIC_PASSWORD=$ELASTIC_PASSWORD
+                - PYTHON_MODULE=price
+            context: app
+        command: ['spark-submit', '--packages',  'org.apache.spark:spark-streaming-kafka-0-8-assembly_2.11:2.3.0', 'src/BitcoinPriceIndex_streamingConsumer.py']
+        networks:
+            - backend
+            - kafka_net
+        depends_on:
+            - price_streaming_producer
+            - kafka
+            - db
+        restart: on-failure
+    price_streaming_producer:
+        build:
+            args:
+                - PYTHON_MODULE=price
+            context: app
+        command: python3 src/BitcoinPriceIndex_streamingProducer.py
+        networks:
+            - kafka_net
+        depends_on:
+            - kafka
+        restart: on-failure
+networks:
+    kafka_net:
+    backend:
+

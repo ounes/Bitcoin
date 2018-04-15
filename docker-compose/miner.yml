@@ -1,0 +1,30 @@
+version: '2.3'
+services:
+    miners_historical_producer:
+        build:
+            args:
+                - PYTHON_MODULE=miners
+            context: app
+        networks:
+            - kafka_net
+        depends_on:
+            - kafka
+            - miners_historical_consumer
+        command: python src/BitcoinMinersIndex_historicalProducer.py
+        restart: on-failure    
+    miners_historical_consumer:
+        environment:
+            - KAFKA_MAVEN=org.apache.spark:spark-streaming-kafka-0-8-assembly_2.11:2.3.0
+        build:
+            args:
+                - PYTHON_MODULE=miners
+                - ELASTIC_PASSWORD=$ELASTIC_PASSWORD
+            context: app
+        command: ['spark-submit', '--packages',  'org.apache.spark:spark-streaming-kafka-0-8-assembly_2.11:2.3.0', 'src/BitcoinMinersIndex_historicalConsumer.py']
+        networks:
+            - kafka_net
+            - backend
+        depends_on:
+            - kafka
+            - db
+        restart: on-failure
