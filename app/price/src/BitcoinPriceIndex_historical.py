@@ -88,7 +88,7 @@ def clearHistorical():
 
 if __name__ == "__main__":
     from config import config
-    connections.create_connection(hosts=config['elasticsearch']['hosts'], http_auth=http_auth(config['elasticsearch']))
+    connections.create_connection(hosts=config['elasticsearch']['hosts'])
     clearHistorical()
     insertFullHistory()
     while True: 
